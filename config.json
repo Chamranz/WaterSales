@@ -1,0 +1,5 @@
+{
+    "data_path": "data/sales.xlsx",
+    "output_model_path": "models/model.pkl",
+    "target_column": "y"
+}
