@@ -1,28 +1,45 @@
- # --- Разделение на train и test ---
-    # Вариант 1: Просто разделить в пропорции 80/20
-    train_size = int(len(prophet_data) * 0.8)
-    train = prophet_data[:train_size]
-    test = prophet_data[train_size:]
+import pandas as pd  
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+import matplotlib.pyplot as plt
 
-    # Обучаем модель только на train
-    model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
-    model.fit(train)
+    
+def evaluate(model, test: pd.DataFrame, all_products: list) -> None:
+    """
+    Оценивает модель на всех продуктах
+    """
 
-    # Делаем предикт на тестовых датах
-    future = test[['ds']]  # Можно использовать и больше, но здесь тестируем на тестовых датах
-    forecast = model.predict(future)
+    # Берем только нужные колонки
+    df = test[["ds"] + list(test.columns[test.columns.str.startswith("product_")]) + ["y"]]
 
-    # Объединяем предсказания и реальные значения
-    test_forecast = test.merge(forecast[['ds', 'yhat']], on='ds', how='left')
+    # Все даты
+    all_dates = df['ds'].unique()
 
-    # Вычисляем метрики
-    mae = mean_absolute_error(test_forecast['y'], test_forecast['yhat'])
-    rmse = mean_squared_error(test_forecast['y'], test_forecast['yhat'])
+    for product in all_products:
+        # Создаем future только с нужным продуктом
+        future = pd.DataFrame({'ds': all_dates})
+        for col in df.columns:
+            if col.startswith("product_"):
+                future[col] = 1 if col == f"product_{product}" else 0
 
-    plt.plot(test_forecast["ds"], test_forecast["y"])
-    plt.plot(test_forecast["ds"], test_forecast["yhat"])
-    plt.show()
+        # Прогноз
+        forecast = model.predict(future)
 
-    print(product_name)
-    print(f"MAE: {mae}")
-    print(f"RMSE: {rmse}")
+        # Фильтруем тестовые данные для этого продукта
+        product_test = df[df[f"product_{product}"] == 1].copy()
+        product_test = product_test.merge(forecast[['ds', 'yhat']], on='ds', how='left')
+
+        # Метрики
+        mae = mean_absolute_error(product_test['y'], product_test['yhat'])
+        rmse = mean_squared_error(product_test['y'], product_test['yhat'], squared=False)
+
+        print(f"Product: {product} | MAE: {mae:.2f}, RMSE: {rmse:.2f}")
+
+        # График
+        plt.figure(figsize=(12, 4))
+        plt.plot(product_test['ds'], product_test['y'], label='Real')
+        plt.plot(product_test['ds'], product_test['yhat'], label='Predicted')
+        plt.title(product)
+        plt.legend()
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.show()

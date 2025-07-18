@@ -20,19 +20,26 @@ def train_model(df: pd.DataFrame, product_name: str, random_state=42, test_size=
         Обученная модель и данные для валидирования
     """
 
-    # Фильруем данные для предикта конкретного класса
-    product_data = df[df["Номенклатура"] == product_name].copy()
-
-    # Подготовливаем данные для предикта
-    prophet_data = product_data[["ds", "y"]].copy()
-    prophet_data = prophet_data.sort_values("ds")
-
-    # Обучаем модель только на train
+    # Инициализируем модель
     model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
-    model.fit(prophet_data)
 
-    return model
-    
+    # Добавляем тип продукта как регрессор
+    for col in df.columns:
+        if col.startswith("product_"):
+            model.add_regressor(col)
+
+    prophet_data = df[["ds"] + list(df.columns[df.columns.str.startswith("product_")]) + ["y"]]
+
+    # --- Разделение на train и test ---
+    # Вариант 1: Просто разделить в пропорции 80/20
+    train_size = int(len(prophet_data) * 0.8)
+    train = prophet_data[:train_size]
+    test = prophet_data[train_size:]
+
+    model.fit(train)
+
+    return model, test
+
 
 def main_training(df: pd.DataFrame) -> pd.DataFrame:
     """
