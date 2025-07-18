@@ -15,6 +15,6 @@ data = load_data(data_path)
 df = preprocess_data(data)
 
 plt.plot(df["ds"], df["y"])
-plt.show()
+#plt.show()
 
 print(df.head)

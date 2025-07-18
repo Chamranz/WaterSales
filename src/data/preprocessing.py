@@ -4,6 +4,7 @@ import numpy as np
 from datetime import datetime
 from prophet import Prophet
 import os
+from scipy.stats import zscore
 
 
 def remove_outliers_iqr(group):
@@ -59,11 +60,12 @@ def preprocess_data(_df: pd.DataFrame) -> pd.DataFrame:
 
     # Чистим выбрросы
     df_long = df[df["y"] > 0]
-    
-    from scipy.stats import zscore
 
     df_long['z_score'] = df_long.groupby("Номенклатура")["y"].transform(lambda x: zscore(x, nan_policy='omit'))
     df_clean = df_long[df_long['z_score'].abs() < 3]  # оставляем только те, у которых z-score < 3
+
+    # One-hot encoding для типов продуктов
+    #df_clean = pd.get_dummies(df_clean, columns=["Номенклатура"], prefix=["product"])
     
     return df_clean
     
