@@ -6,7 +6,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 
 
-def train_model(df: pd.DataFrame, random_state=42, test_size=0.2) -> Tuple[Any, Any, Any]:
+def train_model(df: pd.DataFrame, product_name, random_state=42, test_size=0.2) -> Tuple[Any, Any, Any]:
     """
     Обучает Prophet
 
@@ -20,18 +20,20 @@ def train_model(df: pd.DataFrame, random_state=42, test_size=0.2) -> Tuple[Any, 
         Обученная модель и данные для валидирования
     """
 
-
-    # Инициализируем модель
-    model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
-
+    # Filter data for this product
+    product_data = df[df["Номенклатура"] == product_name].copy()
     prophet_data = df[["ds"] + list(df.columns[df.columns.str.startswith("product_")]) + ["y"]]
-
+    # Prepare data for Prophet
+    prophet_data = product_data[["ds", "y"]].copy()
+    prophet_data = prophet_data.sort_values("ds")
     # --- Разделение на train и test ---
     # Вариант 1: Просто разделить в пропорции 80/20
     train_size = int(len(prophet_data) * 0.8)
     train = prophet_data[:train_size]
     test = prophet_data[train_size:]
-
+    
+    # Инициализируем модель
+    model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
     model.fit(train)
 
     return model, test
