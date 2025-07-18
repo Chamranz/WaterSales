@@ -6,6 +6,13 @@ from prophet import Prophet
 import os
 
 
+def remove_outliers_iqr(group):
+    Q1 = group['y'].quantile(0.25)
+    Q3 = group['y'].quantile(0.75)
+    IQR = Q3 - Q1
+    return group[(group['y'] >= (Q1 - 1.5 * IQR)) & (group['y'] <= (Q3 + 1.5 * IQR))]
+
+
 def preprocess_data(_df: pd.DataFrame) -> pd.DataFrame:
     """
     Переводит данные из широкого формата (даты как столбцы) в длинный (даты как строки)
@@ -49,7 +56,14 @@ def preprocess_data(_df: pd.DataFrame) -> pd.DataFrame:
     product_means = df.groupby('Номенклатура')['y'].transform('mean')
     df['y'] = df['y'].fillna(product_means)
     df['y'] = df['y'].fillna(0)
+
+    # Чистим выбрросы
+    df_long = df[df["y"] > 0]
     
-    return df
+    from scipy.stats import zscore
+
+    df_long['z_score'] = df_long.groupby("Номенклатура")["y"].transform(lambda x: zscore(x, nan_policy='omit'))
+    df_clean = df_long[df_long['z_score'].abs() < 3]  # оставляем только те, у которых z-score < 3
     
- 
+    return df_clean
+    
