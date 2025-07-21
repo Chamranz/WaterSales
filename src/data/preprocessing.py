@@ -58,14 +58,21 @@ def preprocess_data(_df: pd.DataFrame) -> pd.DataFrame:
     df['y'] = df['y'].fillna(product_means)
     df['y'] = df['y'].fillna(0)
 
-    # Чистим выбрросы
-    df_long = df[df["y"] > 0]
+    # Прогнозируем процент
+    ## Скользящее среднее за последние 30 дней
+    #df["rolling_avg"] = df.groupby("Номенклатура")['y'].transform(lambda x: x.rolling(windows=30, min_period=1).mean())
 
-    df_long['z_score'] = df_long.groupby("Номенклатура")["y"].transform(lambda x: zscore(x, nan_policy='omit'))
-    df_clean = df_long[df_long['z_score'].abs() < 3]  # оставляем только те, у которых z-score < 3
+    #df["percent_of_avg"] = df["y"] / df["rolling_avg"] * 100
+    
+
+    # Чистим выбрросы
+    #df_long = df[df["y"] > 0]
+
+    #df_long['z_score'] = df_long.groupby("Номенклатура")["y"].transform(lambda x: zscore(x, nan_policy='omit'))
+    #df_clean = df_long[df_long['z_score'].abs() < 3]  # оставляем только те, у которых z-score < 3
 
     # One-hot encoding для типов продуктов
     #df_clean = pd.get_dummies(df_clean, columns=["Номенклатура"], prefix=["product"])
-    
+
     return df_clean
     

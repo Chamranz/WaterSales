@@ -25,4 +25,4 @@ def get_data_paths(config: dict) -> Tuple[Path, Path]:
     Returns:
         Кортеж из двух путей: путь к данным и путь для сохранеиня модели
     """
-    return Path(config["data_path"]), Path(config["output_model_path"])
+    return Path(config["data_path"]), Path(config["output_path"])
