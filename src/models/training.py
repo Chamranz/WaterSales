@@ -4,9 +4,12 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 import pandas as pd
 from datetime import datetime
 import matplotlib.pyplot as plt
+from src.models.evaluation import evaluate
+import pickle
+from src.utils.config import load_config
 
 
-def train_model(df: pd.DataFrame, product_name, random_state=42, test_size=0.2) -> Tuple[Any, Any, Any]:
+def train_model(df: pd.DataFrame, product_name: str, random_state=42, test_size=0.2) -> Tuple[Any, Any, Any]:
     """
     Обучает Prophet
 
@@ -19,25 +22,27 @@ def train_model(df: pd.DataFrame, product_name, random_state=42, test_size=0.2) 
     Returns:
         Обученная модель и данные для валидирования
     """
-
-    # Filter data for this product
+    # Фильтрация
     product_data = df[df["Номенклатура"] == product_name].copy()
-    prophet_data = df[["ds"] + list(df.columns[df.columns.str.startswith("product_")]) + ["y"]]
-    # Prepare data for Prophet
     prophet_data = product_data[["ds", "y"]].copy()
     prophet_data = prophet_data.sort_values("ds")
-    # --- Разделение на train и test ---
-    # Вариант 1: Просто разделить в пропорции 80/20
+
+    # Train/test
     train_size = int(len(prophet_data) * 0.8)
     train = prophet_data[:train_size]
     test = prophet_data[train_size:]
-    
-    # Инициализируем модель
+
+    # Обучение
     model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
     model.fit(train)
 
-    return model, test
-    
+    # Оценка
+    evaluate(model, test, product_name)
+
+    model = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=True)
+    model.fit(prophet_data)
+    return model
+
 
 def main_training(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -51,6 +56,8 @@ def main_training(df: pd.DataFrame) -> pd.DataFrame:
         y: Вектор целевой переменной
     """
 
+    config = load_config() 
+
     # Get all unique products
     all_products = df["Номенклатура"].unique()
     print(f"Generating forecasts for {len(all_products)} products")
@@ -63,11 +70,14 @@ def main_training(df: pd.DataFrame) -> pd.DataFrame:
     # Create empty DataFrame with products as rows and dates as columns
     forecast_matrix = pd.DataFrame(index=all_products, columns=date_columns)
     forecast_matrix.index.name = "Номенклатура"
+    
 
     # Loop through each product
     for i, product_name in enumerate(all_products):
         try:
-            train_model(df, product_name)
+            model = train_model(df, product_name)
+            with open(f"models/{product_name}_model.pkl", "wb") as f:
+                pickle.dump(model, f)
         except Exception as e:
             print(f"Error processing product '{product_name}': {e}")
 
@@ -76,4 +86,3 @@ def main_training(df: pd.DataFrame) -> pd.DataFrame:
 
     # Reset index to make "Номенклатура" a regular column
     #forecast_matrix = forecast_matrix.reset_index()
-

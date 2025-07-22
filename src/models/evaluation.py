@@ -1,45 +1,64 @@
 import pandas as pd  
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.pyplot as plt
-
+import numpy as np
     
-def evaluate(model, test: pd.DataFrame, all_products: list) -> None:
+def evaluate(model, test: pd.DataFrame, product_name) -> None:
     """
-    Оценивает модель на всех продуктах
+    Оценивает модель на тестовой выборке
     """
+    # Прогноз
+    future = test[['ds']]  # делаем прогноз только на тестовых датах
+    forecast = model.predict(future)
 
-    # Берем только нужные колонки
-    df = test[["ds"] + list(test.columns[test.columns.str.startswith("product_")]) + ["y"]]
+    # Объединяем прогноз и реальные значения
+    test_forecast = test.merge(forecast[['ds', 'yhat']], on='ds', how='left')
 
-    # Все даты
-    all_dates = df['ds'].unique()
+    # Вычисляем метрики
+    test_true = test_forecast['y'].values
+    test_pred = test_forecast['yhat'].values
 
-    for product in all_products:
-        # Создаем future только с нужным продуктом
-        future = pd.DataFrame({'ds': all_dates})
-        for col in df.columns:
-            if col.startswith("product_"):
-                future[col] = 1 if col == f"product_{product}" else 0
+    mae = mean_absolute_error(test_true, test_pred)
+    rmse = mean_squared_error(test_true, test_pred)
 
-        # Прогноз
-        forecast = model.predict(future)
+    print(f"Product: {product_name} | MAE: {mae:.2f}, RMSE: {rmse:.2f}")
 
-        # Фильтруем тестовые данные для этого продукта
-        product_test = df[df[f"product_{product}"] == 1].copy()
-        product_test = product_test.merge(forecast[['ds', 'yhat']], on='ds', how='left')
+    # График
+    plt.figure(figsize=(12, 4))
+    plt.plot(test_forecast['ds'], test_forecast['y'], label='Real')
+    plt.plot(test_forecast['ds'], test_forecast['yhat'], label='Predicted')
+    plt.title(product_name)
+    plt.legend()
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
 
-        # Метрики
-        mae = mean_absolute_error(product_test['y'], product_test['yhat'])
-        rmse = mean_squared_error(product_test['y'], product_test['yhat'])
 
-        print(f"Product: {product} | MAE: {mae:.2f}, RMSE: {rmse:.2f}")
 
-        # График
-        plt.figure(figsize=(12, 4))
-        plt.plot(product_test['ds'], product_test['y'], label='Real')
-        plt.plot(product_test['ds'], product_test['yhat'], label='Predicted')
-        plt.title(product)
-        plt.legend()
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-        plt.show()
+
+
+    # Создаём даты на август 2025 (по дням)
+    future_dates = pd.date_range(start='2025-08-01', end='2025-08-31', freq='D')
+    future_df = pd.DataFrame({'ds': future_dates})
+
+    # Прогноз
+    forecast = model.predict(future_df)
+
+    # Выводим основной прогноз
+    print(f"Прогноз для {product_name} на август 2025:")
+    print(forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].head())
+
+    # График прогноза
+    plt.figure(figsize=(12, 6))
+    plt.plot(forecast['ds'], forecast['yhat'], label='Прогноз', color='blue')
+    #plt.fill_between(forecast['ds'], forecast['yhat_lower'], forecast['yhat_upper'],
+    #                color='blue', alpha=0.2, label='Доверительный интервал')
+    plt.title(f"Прогноз продаж {product_name} — август 2025")
+    plt.xlabel("Дата")
+    plt.ylabel("Прогнозируемое значение")
+    plt.legend()
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
+    return forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]

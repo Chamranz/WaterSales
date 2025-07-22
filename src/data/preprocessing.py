@@ -23,12 +23,10 @@ def preprocess_data(_df: pd.DataFrame) -> pd.DataFrame:
 
     Returns:
         Очищенный DataFrame, где признаковое пространство слито в один список
-        Списко всех уникальных продуктов
     """
 
     # Конкатенация со всех лет
-    #years = ["2019", "2020", "2021", "2022", "2023"]
-    years = ["2019"]
+    years = ["2019", "2020", "2021", "2022", "2023"]
     df = None
     for year in years:
         if df is None:
@@ -41,9 +39,6 @@ def preprocess_data(_df: pd.DataFrame) -> pd.DataFrame:
         id_vars=["Номенклатура"],
         var_name="ds",
         value_name="y")
-
-    # Сбор всех классов
-    all_products = df["Номенклатура"].unique()
 
     # Фильтрация лишних строк
     df = df[~df["ds"].str.contains("Общий итог", na=False)]
@@ -63,11 +58,5 @@ def preprocess_data(_df: pd.DataFrame) -> pd.DataFrame:
     df['y'] = df['y'].fillna(product_means)
     df['y'] = df['y'].fillna(0)
 
-    # Чистим выбрросы
-    df_long = df[df["y"] > 0]
-
-    df_long['z_score'] = df_long.groupby("Номенклатура")["y"].transform(lambda x: zscore(x, nan_policy='omit'))
-    df_clean = df_long[df_long['z_score'].abs() < 3]  # оставляем только те, у которых z-score < 3
-    
-    return df_clean, all_products
+    return df
     

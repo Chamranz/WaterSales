@@ -10,14 +10,11 @@ def main() -> None:
     data_path, output_path = get_data_paths(config)
 
     data = load_data(data_path)
-    data_clear, all_products = preprocess_data(data)
+    data_clear = preprocess_data(data)
 
-    model, test = train_model(data_clear)
+    model = main_training(data_clear)
 
-    evaluate(model, test, all_products)
-
-    with open(config["output_path"], "wb") as f:
-        pickle.dump(model, f)
+    #evaluate(model, test, all_products)
 
 if __name__ == "__main__":
     main()
