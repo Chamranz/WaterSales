@@ -31,7 +31,7 @@ def evaluate(model, test: pd.DataFrame, product_name) -> None:
     plt.legend()
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.show()
+    #plt.show()
 
 
 
@@ -59,6 +59,6 @@ def evaluate(model, test: pd.DataFrame, product_name) -> None:
     plt.legend()
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.show()
+    #plt.show()
 
     return forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]

@@ -1,0 +1,49 @@
+<!-- src/api/templates/index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Предсказание продаж</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Предсказание объёмов продаж</h1>
+        <form id="predictForm">
+            <label for="category">Категория товара:</label>
+            <input type="text" id="category" name="category" placeholder="Например: water_19l" required>
+
+            <label for="date">Дата (начало прогноза):</label>
+            <input type="date" id="date" name="date" required>
+
+            <button type="submit">Получить прогноз (Excel)</button>
+        </form>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        document.getElementById("predictForm").onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const params = new URLSearchParams(formData);
+
+            const status = document.getElementById("status");
+            status.innerText = "Генерация прогноза...";
+
+            const response = await fetch(`/predict/excel?${params}`);
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `прогноз_${formData.get("category")}.xlsx`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+                status.innerText = "✅ Готово! Файл загружен.";
+            } else {
+                status.innerText = "❌ Ошибка: " + await response.text();
+            }
+        };
+    </script>
+</body>
+</html>
