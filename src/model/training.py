@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from src.model.evaluation import evaluate
 import pickle
 from src.utils.config import load_config
-
+import os
 
 def train_model(df: pd.DataFrame, product_name: str, random_state=42, test_size=0.2) -> Tuple[Any, Any, Any]:
     """
@@ -76,6 +76,7 @@ def main_training(df: pd.DataFrame) -> pd.DataFrame:
     for i, product_name in enumerate(all_products):
         try:
             model = train_model(df, product_name)
+            os.makedirs(output_excel, exist_ok=True)
             with open(f"models/basement/{product_name}_model.pkl", "wb") as f:
                 pickle.dump(model, f)
         except Exception as e:
