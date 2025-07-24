@@ -76,7 +76,7 @@ def main_training(df: pd.DataFrame) -> pd.DataFrame:
     for i, product_name in enumerate(all_products):
         try:
             model = train_model(df, product_name)
-            os.makedirs(output_excel, exist_ok=True)
+            os.makedirs("models/basement/", exist_ok=True)
             with open(f"models/basement/{product_name}_model.pkl", "wb") as f:
                 pickle.dump(model, f)
         except Exception as e:
