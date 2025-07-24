@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import Tuple
 
-def load_data(data_path: str) -> pd.DataFrame: 
+def load_data(start, end, category) -> pd.DataFrame: 
     """
         Загрузка данных
 
@@ -12,7 +12,7 @@ def load_data(data_path: str) -> pd.DataFrame:
             DataFrame с даггыми
     """
 
-    years = ["2019", "2020", "2021", "2022", "2023"]
+    years = ["2019", "2020", "2021", "2022", "2023", "2024", "2025"]
     df = None
     for year in years:
         _df = pd.read_excel(data_path, sheet_name=year)

@@ -1,0 +1,100 @@
+/* static/docs.css */
+.docs {
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.docs header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.docs header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.back-link {
+    color: #3498db;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.docs section {
+    margin-bottom: 30px;
+}
+
+.docs h2 {
+    color: #2c3e50;
+    border-left: 4px solid #3498db;
+    padding-left: 12px;
+}
+
+.steps {
+    line-height: 1.8;
+    font-size: 16px;
+}
+
+.steps li {
+    margin-bottom: 15px;
+}
+
+.example-table-container {
+    overflow-x: auto;
+    margin: 20px 0;
+}
+
+.example-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.example-table th,
+.example-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.example-table th {
+    background-color: #f2f2f2;
+    font-weight: 600;
+}
+
+.example-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.note {
+    font-style: italic;
+    color: #7f8c8d;
+    margin-top: 10px;
+}
+
+details {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+details summary {
+    font-weight: 600;
+    cursor: pointer;
+}
+
+details p {
+    margin-top: 10px;
+    color: #555;
+}

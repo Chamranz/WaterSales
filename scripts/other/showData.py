@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 config = load_config()
 data_path, output_path = get_data_paths(config)
+print(data_path)
 
 data = load_data(data_path)
 df = preprocess_data(data)

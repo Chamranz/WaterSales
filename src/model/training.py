@@ -4,7 +4,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 import pandas as pd
 from datetime import datetime
 import matplotlib.pyplot as plt
-from src.models.evaluation import evaluate
+from src.model.evaluation import evaluate
 import pickle
 from src.utils.config import load_config
 
@@ -76,7 +76,7 @@ def main_training(df: pd.DataFrame) -> pd.DataFrame:
     for i, product_name in enumerate(all_products):
         try:
             model = train_model(df, product_name)
-            with open(f"models/{product_name}_model.pkl", "wb") as f:
+            with open(f"models/basement/{product_name}_model.pkl", "wb") as f:
                 pickle.dump(model, f)
         except Exception as e:
             print(f"Error processing product '{product_name}': {e}")

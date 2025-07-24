@@ -3,7 +3,7 @@ from typing import List, Dict
 
 class PredictionRequest(BaseModel):
     data: Dict
-    category: str
+    category: List
 
 class PredictionResponse(BaseModel):
     predictions: List

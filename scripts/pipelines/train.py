@@ -1,8 +1,8 @@
 from src.data.ingestion import load_data
 from src.data.preprocessing import preprocess_data
 from src.utils.config import load_config, get_data_paths
-from src.models.training import main_training, train_model
-from src.models.evaluation import evaluate
+from src.model.training import main_training, train_model
+from src.model.evaluation import evaluate
 import pickle
 
 def main() -> None:
