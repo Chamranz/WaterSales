@@ -1,6 +1,7 @@
 {
-    "data_path": "data/sales.xlsx",
-    "output_model_path": "models/model.pkl",
+    "data_path": "data/dataset_19-25.xlsx",
+    "output_path": "models/model.pkl",
     "target_column": "y",
-    "model_path": "models/Prophet.pkl"
+    "model_path": "models/Prophet.pkl",
+    "excel_path": "src/api/excels"
 }

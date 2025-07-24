@@ -10,11 +10,12 @@ import matplotlib.pyplot as plt
 
 config = load_config()
 data_path, output_path = get_data_paths(config)
+print(data_path)
 
 data = load_data(data_path)
 df = preprocess_data(data)
 
 plt.plot(df["ds"], df["y"])
-plt.show()
+#plt.show()
 
 print(df.head)

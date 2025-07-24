@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Предсказание продаж</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    
+    <div class="container">
+        
+        <h1>📊 Прогноз продаж по категориям</h1>
+        <p class="subtitle">
+        Выберите категории и период — получите Excel с прогнозом. 
+        <a href="/docs-ui" style="color: #3498db; text-decoration: underline;">Справка</a>
+        </p>
+
+        <form id="predictForm">
+            <!-- Кнопки управления -->
+            <div class="controls">
+                <button type="button" id="selectAll">Выбрать всё</button>
+                <button type="button" id="deselectAll">Снять всё</button>
+            </div>
+
+            <!-- Список категорий с чекбоксами -->
+            <div class="categories-grid" id="categories">
+                <!-- Чекбоксы будут добавлены через JS -->
+            </div>
+
+            <!-- Даты -->
+            <div class="date-group">
+                <label>
+                    <span>Дата начала:</span>
+                    <input type="date" id="date_start" name="date_start" required>
+                </label>
+                <label>
+                    <span>Дата окончания:</span>
+                    <input type="date" id="date_end" name="date_end" required>
+                </label>
+            </div>
+
+            <!-- Кнопка -->
+            <button type="submit" class="submit-btn">📥 Скачать прогноз (Excel)</button>
+
+            <!-- Статус -->
+            <div id="status" class="status"></div>
+        </form>
+    </div>
+
+    <script>
+        // Список категорий
+        const categories = [
+            "00. ВОДА 19 литров",
+            "01. ВОДА 3 - 12л + Кулерная",
+            "02. ВОДА 0,25 - 2,5л",
+            "03. НАПИТКИ, СОКИ, КВАС",
+            "04. ДИСТИЛЛИРОВАННАЯ (Техническая вода)",
+            "05. КУЛЕРЫ+ПОМПЫ+Аксессуары",
+            "06. ПРОДУКТЫ ПИТАНИЯ (FOOD)",
+            "07. НЕПРОДОВОЛЬСТВЕННЫЕ ТОВАРЫ (NonFood)",
+            "08. ГИГИЕНА и КОСМЕТИКА",
+            "09. БЫТОВАЯ ХИМИЯ (Порядок в доме)",
+            "10. АВТОтовары",
+            "11. БЫТОВАЯ ТЕХНИКА и ЭЛЕКТРОНИКА",
+            "12. ДЛЯ ШКОЛЫ и ОФИСА",
+            "13. ТОВАРЫ ДЛЯ ДЕТЕЙ",
+            "14. ТОВАРЫ ДЛЯ ЖИВОТНЫХ",
+            "15. СПОРТИВНОЕ ПИТАНИЕ, НАПИТКИ",
+            "49. яяТОВАРОВЕД - НЕ для ПРОДАЖИ!!!!",
+            "52. УСЛУГИ",
+            "77. АКЦИИ от Маркетинга!!!!!!!!!!!!!!",
+            "88. ИНВЕНТАРЬ",
+            "99. КОМПЛЕКТУЮЩИЕ (не для сайта)"
+        ];
+
+        // Генерация чекбоксов
+        const container = document.getElementById("categories");
+        categories.forEach(cat => {
+            const div = document.createElement("label");
+            div.className = "checkbox-label";
+            div.innerHTML = `
+                <input type="checkbox" name="category" value="${cat}">
+                <span>${cat}</span>
+            `;
+            container.appendChild(div);
+        });
+
+        // Кнопки "Выбрать всё / Снять всё"
+        document.getElementById("selectAll").onclick = () => {
+            document.querySelectorAll('input[name="category"]').forEach(cb => cb.checked = true);
+        };
+        document.getElementById("deselectAll").onclick = () => {
+            document.querySelectorAll('input[name="category"]').forEach(cb => cb.checked = false);
+        };
+
+        // Отправка формы
+        document.getElementById("predictForm").onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const selectedCategories = formData.getAll("category");
+
+            if (selectedCategories.length === 0) {
+                document.getElementById("status").innerText = "⚠️ Выберите хотя бы одну категорию";
+                return;
+            }
+
+            const params = new URLSearchParams();
+            selectedCategories.forEach(cat => params.append("category", cat));
+            params.append("date_start", formData.get("date_start"));
+            params.append("date_end", formData.get("date_end"));
+
+            const status = document.getElementById("status");
+            status.innerText = "⏳ Генерация прогноза...";
+
+            try {
+                const response = await fetch(`/predict/excel?${params}`);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `прогноз_по_${selectedCategories.length}_категориям.xlsx`;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    status.innerText = "✅ Готово! Файл загружен.";
+                } else {
+                    const errorText = await response.text();
+                    status.innerText = `❌ Ошибка: ${errorText}`;
+                }
+            } catch (error) {
+                status.innerText = `❌ Ошибка сети: ${error.message}`;
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,9 +1,11 @@
 import pandas as pd
 from src.utils.config import load_config, get_data_paths
+from src.data.ingestion import load_data
 import numpy as np
 from datetime import datetime
 from prophet import Prophet
 import os
+from scipy.stats import zscore
 
 
 def remove_outliers_iqr(group):
@@ -13,7 +15,7 @@ def remove_outliers_iqr(group):
     return group[(group['y'] >= (Q1 - 1.5 * IQR)) & (group['y'] <= (Q3 + 1.5 * IQR))]
 
 
-def preprocess_data(_df: pd.DataFrame) -> pd.DataFrame:
+def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     Переводит данные из широкого формата (даты как столбцы) в длинный (даты как строки)
 
@@ -23,15 +25,6 @@ def preprocess_data(_df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         Очищенный DataFrame, где признаковое пространство слито в один список
     """
-
-    # Конкатенация со всех лет
-    years = ["2019", "2020", "2021", "2022", "2023"]
-    df = None
-    for year in years:
-        if df is None:
-            df = _df
-            continue
-        df = pd.concat([df, _df])
 
     # Преобразование в один длинный список
     df = df.melt(
@@ -57,13 +50,5 @@ def preprocess_data(_df: pd.DataFrame) -> pd.DataFrame:
     df['y'] = df['y'].fillna(product_means)
     df['y'] = df['y'].fillna(0)
 
-    # Чистим выбрросы
-    df_long = df[df["y"] > 0]
-    
-    from scipy.stats import zscore
-
-    df_long['z_score'] = df_long.groupby("Номенклатура")["y"].transform(lambda x: zscore(x, nan_policy='omit'))
-    df_clean = df_long[df_long['z_score'].abs() < 3]  # оставляем только те, у которых z-score < 3
-    
-    return df_clean
+    return df
     
